@@ -1,0 +1,23 @@
+^\.git\/
+^\.github\/
+^\.gitignore$
+
+# Makemaker generated files and dirs.
+^MANIFEST\.
+^Makefile$
+^blib/
+^MakeMaker-\d
+^MYMETA\..*
+^pm_to_blib$
+
+# Module specific files
+\bTest-Changes-Strict\d+(?:\.\d+)+\/
+^Test-Changes-Strict\d+(?:\.\d+)+\.tar\.gz$
+
+
+# Temp, old and emacs backup files.
+~$
+\.old$
+^#.*#$
+^\.#
+
