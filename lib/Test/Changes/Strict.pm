@@ -40,7 +40,7 @@ use constant {
              };
 
 use constant {
-              NOW      => time,
+              NOW => time,
              };
 
 
@@ -80,8 +80,6 @@ sub changes_strict_ok {
 
   my @versions;
   _check_changes(\@lines, \@versions) or return;
-  #
-  ###########
   _check_version_monotonic(\@versions) or return;
   _check_trailing_empty_lines(\@lines) or return;
 
@@ -103,156 +101,6 @@ sub _read_file {
 }
 
 
-
-# helper function
-sub _version_line_check {
-  # Line is already trimmed!
-  my $line = shift;
-  (my ($version, $date) = split(/\s+/, $line)) == 2 or return("not exactly two values");
-  $version =~ $Ver_re or return("invalid version");
-  my ($y, $m, $d);
-  if (length($date // "")) {
-    $date =~ /(\d{4})-(\d{2})-(\d{2})/ or return("invalid date");
-    ($y, $m, $d) = ($1, $2, $3);
-  } else {
-    return("missing date");
-  }
-
-  my $epoch;
-  eval {
-    $epoch = Time::Local::timegm(0, 0, 0, $d, $m-1, $y);
-    1;
-  } or return "'$date': invalid date";
-  #-----------
-  $y >= 1987 or return "$date before Perl era";
-  $epoch <= NOW      or return "$date: date is in the future.";
-  return {version => version->parse($version),
-          version_str => $version,
-          date => $date,
-          epoch => $epoch};
-}
-
-
-# sub _check_changes {
-#   my ($lines, $versions) = @_;
-#   local $Test::Builder::Level = $Test::Builder::Level + 1;
-#   my $indent;
-#   my $state = st_chlog_head;
-#   my %errors;
-#   my $err = sub { push(@{$errors{$_[0]}}, $_[1]); };
-#   my $i = 2;
-#   for (; $i <= @$lines; ++$i) {
-#     my $line = $lines->[$i - 1];
-#     if ($line eq "") {
-#       my $old_state = $state;
-#       $err->($i - 1, "Missing dot at end of line")
-#         if (exists($item_line{$old_state}) && $lines->[$i - 2] !~ /\.$/);
-#       $state = $empty_line_st{$state} // do { $err->($i, "unexpected empty line ($old_state)");
-#                                               last;
-#                                             };
-#       next;
-#     }
-#     if ($line =~ /^[^-\s]/) {
-#       exists($states{$state}->{+st_version}) or do { $err->($i, "unexpected version line");
-#                                                      last;
-#                                                    };
-#       $state = st_version;
-#       my $result = _version_line_check($line);
-#       if (ref($result)) {
-#         $result->{line} = $i;
-#         push(@$versions, $result);
-#       } else {
-#         $err->($i, "version check: $result");
-#       }
-#     } elsif ($line =~ s/^(\s*)-//) {
-#       my $heading_spaces = $1;
-#       exists($states{$state}->{+st_item}) or do { $err->($i, "unexpected item line");
-#                                                   last;
-#                                                 };
-#       $err->($i - 1, "Missing dot at end of line")
-#         if (exists($item_line{$state}) && $lines->[$i - 2] !~ /\.$/);
-#       $err->($i, "Invalid item content") unless $line =~ /^ \S+/;
-#       $state = st_item;
-#       if ($heading_spaces eq "") {
-#         $err->($i, "No indentation");
-#       } elsif (defined($indent)) {
-#         $err->($i, "Wrong indentation") if length($heading_spaces) != $indent;
-#       } else {
-#         $indent = length($heading_spaces);
-#       }
-#     } elsif ($line =~ /^(\s+)[^-\s]/) {
-#       exists($states{$state}->{+st_item_cont}) or do { $err->($i, "unexpected item continuation");
-#                                                        last;
-#                                                      };
-#       my $state = st_item_cont;
-#       my $heading_spaces = $1;
-#       $err->($i, "Wrong indentation") if length($heading_spaces) != $indent + 2;
-#     }
-#   }
-#   #  print "--->>> $state\n";
-#   my $diag;
-#   if (%errors || ($i > @$lines && !exists($states{$state}->{+st_EOF}))) {
-#     if (%errors) {
-#       $diag = join("\n",
-#                    (map {"Line $_: " . join("; ", @{$errors{$_}})}
-#                     (sort { $a <=> $b } keys(%errors))));
-#     }
-#     # !!!!!
-#     $diag = join('; ', ($diag // ()), "Unexpected end of file ($state)")
-#       if ($i > @$lines && !exists($states{$state}->{+st_EOF}));
-#   }
-#   return $diag ? _not_ok($diag) : !0;
-# }
-
-
-# sub _check_version_monotonic {
-#   my ($versions) = @_;
-#   local $Test::Builder::Level = $Test::Builder::Level + 1;
-#   my $diag;
-#   if (@$versions) {
-#     for (my $i = 0; $i < $#$versions; ++$i) {
-#       my ($v1, $e1) = @{$versions->[$i]    }{qw(version epoch)};
-#       my ($v2, $e2) = @{$versions->[$i + 1]}{qw(version epoch)};
-#       unless ($v1 > $v2) {
-#         my $vs1 = $versions->[$i]->{version_str};
-#         my $vs2 = $versions->[$i + 2]->{version_str};
-#         $diag = "$vs1 vs. $vs2: wrong order of versions";
-#         last;
-#       }
-#       if ($e1 < $e2) {
-#         my $d1 = $versions->[$i]->{date};
-#         my $d2 = $versions->[$i + 1]->{date};
-#         $diag = "date $d1 < $d2: chronologically inconsistent";
-#         last;
-#       }
-#     }
-#   } else {
-#     $diag = "No versions to check";
-#   }
-#   return $diag ? _not_ok($diag) : !0;
-# }
-
-# sub _check_trailing_empty_lines {
-#   my ($lines) = @_;
-#   local $Test::Builder::Level = $Test::Builder::Level + 1;
-#   my $ok = !1;
-#   for (my $i = 1; ($i <= 3 && $i < @$lines) && !$ok ; ++$i) {
-#     $ok = $lines->[-$i] ne "";
-#   }
-#   return $ok ? !0 : _not_ok("No more than three blank lines at the end of the file");
-# }
-
-#---------------------------------------------------------
-
-sub _not_ok {
-  my ($diag) = @_;
-  local $Test::Builder::Level = $Test::Builder::Level + 1;
-  $TB->ok(0, $Test_Name);
-  $TB->diag($diag);
-  return !1;
-}
-
-
 sub _check_and_clean_spaces {
   my ($lines) = @_;
   local $Test::Builder::Level = $Test::Builder::Level + 1;
@@ -264,13 +112,13 @@ sub _check_and_clean_spaces {
   my $diag;
   if (@other_spaces) {
     my $plural = @other_spaces > 1 ? "s" : "";
-    $diag = "Non-space white characters found at line$plural " . join(', ', @other_spaces);
+    $diag = "Non-space white character found at line$plural " . join(', ', @other_spaces);
   }
   if (@trailing_spaces) {
     my $plural = @trailing_spaces > 1 ? "s" : "";
-    $diag = join('; ',
+    $diag = join('. ',
                  ($diag // ()),
-                 "Trailing white characters at line$plural " . join(', ', @trailing_spaces));
+                 "Trailing white character at line$plural " . join(', ', @trailing_spaces));
   }
   return $diag ? _not_ok($diag) : !0;
 }
@@ -310,12 +158,16 @@ sub _check_changes {
       my $old_state = $state;
       $err->($i - 1, "Missing dot at end of line")
         if (exists($item_line{$old_state}) && $lines->[$i - 2] !~ /\.$/);
-      $state = $empty_line_st{$state} // do { $err->($i, "unexpected empty line ($old_state)");
-                                              last;
-                                            };
-      next;
-    }
-    if ($line =~ /^[^-\s]/) {
+      #$state = $empty_line_st{$state} or $err->($i, "unexpected empty line ($old_state)");
+      if (exists($empty_line_st{$state})) {
+        $state = $empty_line_st{$state};
+      } else {
+        $err->($i, "unexpected empty line ($old_state)");
+      }
+      # $state = $empty_line_st{$state} // do { $err->($i, "unexpected empty line ($old_state)");
+      #                                         last;
+      #                                       };
+    } elsif ($line =~ /^[^-\s]/) {
       exists($states{$state}->{+st_version}) or do { $err->($i, "unexpected version line");
                                                      last;
                                                    };
@@ -329,11 +181,17 @@ sub _check_changes {
       }
     } elsif ($line =~ s/^(\s*)-//) {
       my $heading_spaces = $1;
-      exists($states{$state}->{+st_item}) or do { $err->($i, "unexpected item line");
+      exists($states{$state}->{+st_item}) or do { my $msg = "unexpected item line";
+                                                  $msg .= " - expected version line or EOF"
+                                                    if $state eq st_empty_after_item;
+                                                  $err->($i, $msg);
                                                   last;
                                                 };
       $err->($i - 1, "Missing dot at end of line")
         if (exists($item_line{$state}) && $lines->[$i - 2] !~ /\.$/);
+      $line =~ /^ \S+/ or do { $err->($i, "Invalid item content");
+                               last;
+                             };
       $err->($i, "Invalid item content") unless $line =~ /^ \S+/;
       $state = st_item;
       if ($heading_spaces eq "") {
@@ -349,10 +207,9 @@ sub _check_changes {
                                                      };
       my $state = st_item_cont;
       my $heading_spaces = $1;
-      $err->($i, "Wrong indentation") if length($heading_spaces) != $indent + 2;
+      length($heading_spaces) == $indent + 2 or do { $err->($i, "Wrong indentation"); last; };
     }
   }
-  #  print "--->>> $state\n";
   my $diag;
   if (%errors || ($i > @$lines && !exists($states{$state}->{+st_EOF}))) {
     if (%errors) {
@@ -360,7 +217,6 @@ sub _check_changes {
                    (map {"Line $_: " . join("; ", @{$errors{$_}})}
                     (sort { $a <=> $b } keys(%errors))));
     }
-    # !!!!!
     $diag = join('; ', ($diag // ()), "Unexpected end of file ($state)")
       if ($i > @$lines && !exists($states{$state}->{+st_EOF}));
   }
@@ -405,5 +261,49 @@ sub _check_trailing_empty_lines {
   }
   return $ok ? !0 : _not_ok("No more than three blank lines at the end of the file");
 }
+
+# ---------------------------- Helper functions ---------------------------------------
+
+
+sub _version_line_check {
+  # Line is already trimmed!
+  my $line = shift;
+  (my ($version, $date) = split(/\s+/, $line)) == 2 or return("not exactly two values");
+  $version =~ $Ver_re or return("invalid version");
+  my ($y, $m, $d);
+  if (length($date // "")) {
+    $date =~ /(\d{4})-(\d{2})-(\d{2})/ or return("invalid date");
+    ($y, $m, $d) = ($1, $2, $3);
+  } else {
+    return("missing date");
+  }
+
+  my $epoch;
+  eval {
+    $epoch = Time::Local::timegm(0, 0, 0, $d, $m-1, $y);
+    1;
+  } or return "'$date': invalid date";
+
+  $y     >= 1987 or return "$date before Perl era";
+  $epoch <= NOW  or return "$date: date is in the future.";
+  return { version     => version->parse($version),
+           version_str => $version,
+           date        => $date,
+           epoch       => $epoch};
+}
+
+
+#---------------------------------------------------------
+
+sub _not_ok {
+  my ($diag) = @_;
+  local $Test::Builder::Level = $Test::Builder::Level + 1;
+  $TB->ok(0, $Test_Name);
+  $TB->diag($diag);
+  return !1;
+}
+
+
+
 
 1; # End of Test::Changes::Strict
