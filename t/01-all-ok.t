@@ -68,7 +68,7 @@ EOF
   };
 };
 
-subtest 'two simple entries' => sub  {
+subtest 'two simple entries and 3 trailing empty lines' => sub  {
   my $valid_changes = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
@@ -79,6 +79,8 @@ Revision history for distribution Foo-Bar-Baz
 0.01 2024-02-28
 
   - Initial release.
+
+
 
 EOF
   set_test_out_all_ok();

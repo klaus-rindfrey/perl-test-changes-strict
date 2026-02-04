@@ -187,7 +187,7 @@ subtest 'Trailing blanks' => sub {
     test_test("fail works");
   };
 
-  subtest "Trailing blanks and non-blamk white chars in multiple lines" => sub {
+  subtest "Trailing blanks and non-blank white chars in multiple lines" => sub {
     my @test_input = @changes;
     $test_input[1] .= "\t ";
     $test_input[2] .= "    ";
@@ -202,6 +202,15 @@ subtest 'Trailing blanks' => sub {
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+2);
     test_diag($diag);
+    changes_strict_ok(changes_file => $fname);
+    test_test("fail works");
+  };
+
+  subtest "4 trailing empty lines" => sub {
+    my $fname = write_changes(join("\n", (@changes, ("") x 4)));
+    test_out("not ok 1 - Changes file passed strict checks");
+    test_fail(+2);
+    test_diag("More than 3 empty lines at end of file");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
   };

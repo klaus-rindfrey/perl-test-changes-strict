@@ -76,6 +76,8 @@ sub changes_strict_ok {
   _read_file($changes_file, \@lines) or return;
 
   _check_and_clean_spaces(\@lines) or return;
+
+  my $trailing_empty_lines = _trim_trailing_empty_lines(\@lines);
   _check_title(\@lines) or return;
 
   my @versions;
@@ -83,7 +85,9 @@ sub changes_strict_ok {
   _check_version_monotonic(\@versions) or return;
   _check_trailing_empty_lines(\@lines) or return;
 
-  $TB->ok(1, $Test_Name);
+  my $ok = $TB->ok($trailing_empty_lines <= 3, $Test_Name) or
+    $TB->diag("More than 3 empty lines at end of file");
+  return $ok;
 }
 
 
@@ -98,6 +102,19 @@ sub _read_file {
   substr($lines->[-1], -1) eq "\n" or return _not_ok("'$fname': no newline at end of file");
   chomp(@$lines);
   return !0;
+}
+
+
+sub _trim_trailing_empty_lines {
+  my ($aref) = @_;
+  my $removed = 0;
+
+  while (@$aref && $aref->[-1] eq '') {
+    pop(@$aref);
+    $removed++;
+  }
+  push(@$aref, q{});            # We need exactly 1 trailing empty line.
+  return $removed;
 }
 
 
@@ -122,6 +139,9 @@ sub _check_and_clean_spaces {
   }
   return $diag ? _not_ok($diag) : !0;
 }
+
+
+
 
 
 sub _check_title {
