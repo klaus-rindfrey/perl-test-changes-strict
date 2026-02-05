@@ -244,7 +244,8 @@ EOF
   };
 
   subtest 'unexpected empty lines' => sub {
-    my $fname = write_changes(<<'EOF');
+    subtest "unexpected empty line after title" => sub {
+      my $fname = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
 
@@ -253,12 +254,73 @@ Revision history for distribution Foo-Bar-Baz
   - Initial release
 
 EOF
-    test_out("not ok 1 - Changes file passed strict checks");
-    test_fail(+2);
-    test_diag("Line 3: unexpected empty line");
-    changes_strict_ok(changes_file => $fname);
-    test_test("fail works");
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 3: unexpected empty line");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
   };
+  subtest "unexpected empty line after version line" => sub {
+    my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.02 2024-03-01
+
+
+  - Initial release
+
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 5: unexpected empty line");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+
+  subtest "unexpected empty line between item lines" => sub {
+    my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.02 2024-03-01
+
+  - Bugfix.
+
+  - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+    ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus.
+  - Donec quam felis.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 6: unexpected empty line");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+
+  subtest "unexpected empty line between item line and version line" => sub {
+    my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.02 2024-03-01
+
+  - Bugfix.
+  - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+    ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus.
+  - Donec quam felis.
+
+
+0.01 2024-02-28
+
+  - Initial release.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 10: unexpected empty line");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
 };
 
 
