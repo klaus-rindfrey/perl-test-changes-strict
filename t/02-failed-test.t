@@ -154,7 +154,7 @@ subtest 'Trailing blanks' => sub {
                  "  - Initial release.",                           # 8 - line  9
                  ""                                                # 9 - line 10
                 );
-  subtest "Trailing blanks in title line" => sub {
+  subtest 'Trailing blanks in title line' => sub {
     my @test_input = @changes;
     $test_input[0] .= "  ";
     my $fname = write_changes(join("\n", @test_input));
@@ -165,7 +165,7 @@ subtest 'Trailing blanks' => sub {
     test_test("fail works");
   };
 
-  subtest "Trailing blanks in empty line" => sub {
+  subtest 'Trailing blanks in empty line' => sub {
     my @test_input = @changes;
     $test_input[3] .= "  ";
     my $fname = write_changes(join("\n", @test_input));
@@ -176,7 +176,7 @@ subtest 'Trailing blanks' => sub {
     test_test("fail works");
   };
 
-  subtest "Trailing blanks in multiple lines" => sub {
+  subtest 'Trailing blanks in multiple lines' => sub {
     my @test_input = @changes;
     $test_input[$_] .= "  " for (1, 2, 4);
     my $fname = write_changes(join("\n", @test_input));
@@ -187,7 +187,7 @@ subtest 'Trailing blanks' => sub {
     test_test("fail works");
   };
 
-  subtest "Trailing blanks and non-blank white chars in multiple lines" => sub {
+  subtest 'Trailing blanks and non-blank white chars in multiple lines' => sub {
     my @test_input = @changes;
     $test_input[1] .= "\t ";
     $test_input[2] .= "    ";
@@ -206,7 +206,7 @@ subtest 'Trailing blanks' => sub {
     test_test("fail works");
   };
 
-  subtest "4 trailing empty lines" => sub {
+  subtest '4 trailing empty lines' => sub {
     my $fname = write_changes(join("\n", (@changes, ("") x 4)));
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+2);
@@ -239,6 +239,23 @@ EOF
     test_fail(+3);
     test_diag("Line 8: Missing dot at end of line");
     test_diag("Line 13: Missing dot at end of line");
+    changes_strict_ok(changes_file => $fname);
+    test_test("fail works");
+  };
+
+  subtest 'unexpected empty lines' => sub {
+    my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+
+0.02 2024-03-01
+
+  - Initial release
+
+EOF
+    test_out("not ok 1 - Changes file passed strict checks");
+    test_fail(+2);
+    test_diag("Line 3: unexpected empty line");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
   };

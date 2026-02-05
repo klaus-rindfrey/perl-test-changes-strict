@@ -141,9 +141,6 @@ sub _check_and_clean_spaces {
 }
 
 
-
-
-
 sub _check_title {
   my ($lines) = @_;
   local $Test::Builder::Level = $Test::Builder::Level + 1;
@@ -178,15 +175,20 @@ sub _check_changes {
       my $old_state = $state;
       $err->($i - 1, "Missing dot at end of line")
         if (exists($item_line{$old_state}) && $lines->[$i - 2] !~ /\.$/);
-      #$state = $empty_line_st{$state} or $err->($i, "unexpected empty line ($old_state)");
-      if (exists($empty_line_st{$state})) {
-        $state = $empty_line_st{$state};
+
+
+      if (exists($item_line{$old_state}) || $old_state eq st_empty_after_item) {
+        my $next_line = $lines->[$i];
+        if (defined($next_line) && $next_line !~ /^\S/) {
+          $err->($i, "unexpected empty line");
+          last;
+        }
+        $state = st_empty_after_item;
       } else {
-        $err->($i, "unexpected empty line ($old_state)");
+        $state = $empty_line_st{$old_state} or do { $err->($i, "unexpected empty line");
+                                                    last;
+                                                  };
       }
-      # $state = $empty_line_st{$state} // do { $err->($i, "unexpected empty line ($old_state)");
-      #                                         last;
-      #                                       };
     } elsif ($line =~ /^[^-\s]/) {
       exists($states{$state}->{+st_version}) or do { $err->($i, "unexpected version line");
                                                      last;
