@@ -260,9 +260,8 @@ EOF
       changes_strict_ok(changes_file => $fname);
       test_test("fail works");
     };
-  };
-  subtest "unexpected empty line after version line" => sub {
-    my $fname = write_changes(<<'EOF');
+    subtest "unexpected empty line after version line" => sub {
+      my $fname = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
 0.02 2024-03-01
@@ -278,8 +277,8 @@ EOF
       test_test("fail works");
     };
 
-  subtest "unexpected empty line between item lines" => sub {
-    my $fname = write_changes(<<'EOF');
+    subtest "unexpected empty line between item lines" => sub {
+      my $fname = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
 0.02 2024-03-01
@@ -298,8 +297,8 @@ EOF
       test_test("fail works");
     };
 
-  subtest "unexpected empty line between item line and version line" => sub {
-    my $fname = write_changes(<<'EOF');
+    subtest "unexpected empty line between item line and version line" => sub {
+      my $fname = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
 0.02 2024-03-01
@@ -309,6 +308,7 @@ Revision history for distribution Foo-Bar-Baz
     ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
     dis parturient montes, nascetur ridiculus mus.
   - Donec quam felis.
+
 
 
 0.01 2024-02-28
@@ -321,6 +321,72 @@ EOF
       changes_strict_ok(changes_file => $fname);
       test_test("fail works");
     };
+  };
+
+  subtest 'unexpected version line' => sub {
+    subtest 'unexpected version line immediately after title line' => sub {
+      my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+0.02 2024-03-01
+
+  - Bugfix.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 2: unexpected version line");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+
+    subtest 'unexpected version line immediately after version line' => sub {
+      my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2024-04-01
+
+  - Bugfix.
+  - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+    ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus.
+  - Donec quam felis.
+
+0.02 2024-03-10
+0.01 2024-02-28
+
+  - Initial release.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 12: unexpected version line");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+
+    subtest 'unexpected version line after empty line after version line' => sub {
+      my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2024-04-01
+
+  - Bugfix.
+  - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+    ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus.
+  - Donec quam felis.
+
+0.02 2024-03-10
+
+0.01 2024-02-28
+
+  - Initial release.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 13: unexpected version line");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+  };
 };
 
 
