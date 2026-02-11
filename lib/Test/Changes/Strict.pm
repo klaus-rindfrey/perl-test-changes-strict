@@ -200,6 +200,7 @@ sub _check_changes {
         push(@$versions, $result);
       } else {
         $err->($i, "version check: $result");
+        last;
       }
     } elsif ($line =~ s/^(\s*)-//) {
       my $heading_spaces = $1;
@@ -291,15 +292,9 @@ sub _version_line_check {
   # Line is already trimmed!
   my $line = shift;
   (my ($version, $date) = split(/\s+/, $line)) == 2 or return("not exactly two values");
-  $version =~ $Ver_re or return("invalid version");
-  my ($y, $m, $d);
-  if (length($date // "")) {
-    $date =~ /(\d{4})-(\d{2})-(\d{2})/ or return("invalid date");
-    ($y, $m, $d) = ($1, $2, $3);
-  } else {
-    return("missing date");
-  }
-
+  $version =~ /^$Ver_re$/ or return("$version: invalid version");
+  $date =~ /^(\d{4})-(\d{2})-(\d{2})$/ or return("$date: invalid date: wrong format");
+  my ($y, $m, $d) = ($1, $2, $3);
   my $epoch;
   eval {
     $epoch = Time::Local::timegm(0, 0, 0, $d, $m-1, $y);

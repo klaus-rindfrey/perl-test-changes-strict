@@ -17,7 +17,7 @@ subtest 'one version with one simple entry / examples with different titles.' =>
     my $valid_changes = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
-0.01 2024-02-28
+0.01 2024-02-29
 
   - Initial release.
 EOF
@@ -31,7 +31,7 @@ EOF
     my $valid_changes = write_changes(<<'EOF');
 Revision history for perl distribution Foo-Bar-Baz
 
-0.01 2024-02-28
+0.01   2024-02-28
 
   - Initial release.
 EOF
@@ -114,6 +114,6 @@ EOF
   test_test("valid Changes file passes");
 };
 
-
+# -------------------------------------------------------------------------------------------------
 
 done_testing;

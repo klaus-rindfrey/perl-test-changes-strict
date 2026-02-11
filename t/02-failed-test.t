@@ -390,5 +390,138 @@ EOF
 };
 
 
+subtest 'Version line check' => sub {
+  subtest 'Not exactly two values' => sub {
+    subtest 'Version, but no date' => sub {
+      my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.03
+
+  - Bugfix.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 3: version check: not exactly two values");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+    subtest 'No version, but a date' => sub {
+      my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+2024-04-01
+
+  - Bugfix.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 3: version check: not exactly two values");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+  };
+
+  subtest 'invalid version' => sub {
+    subtest 'too many dots' => sub {
+      my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.03.5.9 2024-04-01
+
+  - Bugfix.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 3: version check: 0.03.5.9: invalid version");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+    subtest "heading 'v'" => sub {
+      my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+v0.03 2024-04-01
+
+  - Bugfix.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 3: version check: v0.03: invalid version");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+  };
+};
+
+
+subtest 'Invalid date' => sub {
+  subtest 'wrong format' => sub {
+    subtest 'wrong format: separator' => sub {
+      my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2024/04/01
+
+  - Bugfix.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 3: version check: 2024/04/01: invalid date: wrong format");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+
+    subtest 'wrong format: too many digits' => sub {
+      my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2024-004-01
+
+  - Bugfix.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 3: version check: 2024-004-01: invalid date: wrong format");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+  };
+
+  subtest 'Non-existent date' => sub {
+    subtest '35 May' => sub {
+      my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2024-05-35
+
+  - Bugfix.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 3: version check: '2024-05-35': invalid date");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+
+    subtest '29 February, but not a leap year' => sub {
+      my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2025-02-29
+
+  - Bugfix.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 3: version check: '2025-02-29': invalid date");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+  };
+};
+
+# -------------------------------------------------------------------------------------------------
+
 done_testing;
 
