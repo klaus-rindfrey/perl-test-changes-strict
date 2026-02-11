@@ -519,6 +519,35 @@ EOF
       test_test("fail works");
     };
   };
+  subtest 'future date' => sub {
+    my $next_year = (localtime)[5] + 1900 + 1;
+    my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+0.01 $next_year-04-03
+
+  - Initial release.
+EOF
+    test_out("not ok 1 - Changes file passed strict checks");
+    test_fail(+2);
+    test_diag("Line 3: version check: $next_year-04-03: date is in the future.");
+    changes_strict_ok(changes_file => $fname);
+    test_test("fail works");
+  };
+  subtest 'before Perl era' => sub {
+     my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+0.01 1965-04-03
+
+  - Initial release.
+EOF
+    test_out("not ok 1 - Changes file passed strict checks");
+    test_fail(+2);
+    test_diag("Line 3: version check: 1965-04-03: before Perl era");
+    changes_strict_ok(changes_file => $fname);
+    test_test("fail works");
+  };
 };
 
 # -------------------------------------------------------------------------------------------------

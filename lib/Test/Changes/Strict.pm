@@ -204,10 +204,7 @@ sub _check_changes {
       }
     } elsif ($line =~ s/^(\s*)-//) {
       my $heading_spaces = $1;
-      exists($states{$state}->{+st_item}) or do { my $msg = "unexpected item line";
-                                                  $msg .= " - expected version line or EOF"
-                                                    if $state eq st_empty_after_item;
-                                                  $err->($i, $msg);
+      exists($states{$state}->{+st_item}) or do { $err->($i, "unexpected item line");
                                                   last;
                                                 };
       $err->($i - 1, "Missing dot at end of line")
@@ -301,7 +298,7 @@ sub _version_line_check {
     1;
   } or return "'$date': invalid date";
 
-  $y     >= 1987 or return "$date before Perl era";
+  $y     >= 1987 or return "$date: before Perl era";
   $epoch <= NOW  or return "$date: date is in the future.";
   return { version     => version->parse($version),
            version_str => $version,
