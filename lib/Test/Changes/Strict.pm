@@ -173,7 +173,7 @@ sub _check_changes {
     my $line = $lines->[$i - 1];
     if ($line eq "") {
       my $old_state = $state;
-      $err->($i - 1, "Missing dot at end of line")
+      $err->($i - 1, "missing dot at end of line")
         if (exists($item_line{$old_state}) && $lines->[$i - 2] !~ /\.$/);
 
 
@@ -207,17 +207,16 @@ sub _check_changes {
       exists($states{$state}->{+st_item}) or do { $err->($i, "unexpected item line");
                                                   last;
                                                 };
-      $err->($i - 1, "Missing dot at end of line")
+      $err->($i - 1, "missing dot at end of line")
         if (exists($item_line{$state}) && $lines->[$i - 2] !~ /\.$/);
-      $line =~ /^ \S+/ or do { $err->($i, "Invalid item content");
+      $line =~ /^ \S+/ or do { $err->($i, "invalid item content");
                                last;
                              };
-      $err->($i, "Invalid item content") unless $line =~ /^ \S+/;
       $state = st_item;
       if ($heading_spaces eq "") {
-        $err->($i, "No indentation");
+        $err->($i, "no indentation");
       } elsif (defined($indent)) {
-        $err->($i, "Wrong indentation") if length($heading_spaces) != $indent;
+        $err->($i, "wrong indentation") if length($heading_spaces) != $indent;
       } else {
         $indent = length($heading_spaces);
       }
@@ -227,7 +226,7 @@ sub _check_changes {
                                                      };
       my $state = st_item_cont;
       my $heading_spaces = $1;
-      length($heading_spaces) == $indent + 2 or do { $err->($i, "Wrong indentation"); last; };
+      length($heading_spaces) == $indent + 2 or do { $err->($i, "wrong indentation"); };
     }
   }
   my $diag;
@@ -237,7 +236,7 @@ sub _check_changes {
                    (map {"Line $_: " . join("; ", @{$errors{$_}})}
                     (sort { $a <=> $b } keys(%errors))));
     }
-    $diag = join('; ', ($diag // ()), "Unexpected end of file ($state)")
+    $diag = join('; ', ($diag // ()), "unexpected end of file")
       if ($i > @$lines && !exists($states{$state}->{+st_EOF}));
   }
   return $diag ? _not_ok($diag) : !0;

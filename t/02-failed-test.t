@@ -218,7 +218,7 @@ subtest 'Trailing blanks' => sub {
 
 
 subtest 'check changes' => sub {
-  subtest 'Missing dot at end of line' => sub {
+  subtest 'missing dot at end of line' => sub {
     my $fname = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
@@ -237,8 +237,8 @@ Revision history for distribution Foo-Bar-Baz
 EOF
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+3);
-    test_diag("Line 8: Missing dot at end of line");
-    test_diag("Line 13: Missing dot at end of line");
+    test_diag("Line 8: missing dot at end of line");
+    test_diag("Line 13: missing dot at end of line");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
   };
@@ -293,6 +293,27 @@ EOF
       test_out("not ok 1 - Changes file passed strict checks");
       test_fail(+2);
       test_diag("Line 6: unexpected empty line");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+
+    subtest "unexpected empty line between item line and continuation" => sub {
+      my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.02 2024-03-01
+
+  - Bugfix.
+  - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+    ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus.
+
+    Donec sodales sagittis magna.
+  - Donec quam felis.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 9: unexpected empty line");
       changes_strict_ok(changes_file => $fname);
       test_test("fail works");
     };
@@ -387,168 +408,388 @@ EOF
       test_test("fail works");
     };
   };
-};
 
 
-subtest 'Version line check' => sub {
-  subtest 'Not exactly two values' => sub {
-    subtest 'Version, but no date' => sub {
-      my $fname = write_changes(<<'EOF');
+
+  subtest 'Version line check' => sub {
+    subtest 'Not exactly two values' => sub {
+      subtest 'Version, but no date' => sub {
+        my $fname = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
 0.03
 
   - Bugfix.
 EOF
-      test_out("not ok 1 - Changes file passed strict checks");
-      test_fail(+2);
-      test_diag("Line 3: version check: not exactly two values");
-      changes_strict_ok(changes_file => $fname);
-      test_test("fail works");
-    };
-    subtest 'No version, but a date' => sub {
-      my $fname = write_changes(<<'EOF');
+        test_out("not ok 1 - Changes file passed strict checks");
+        test_fail(+2);
+        test_diag("Line 3: version check: not exactly two values");
+        changes_strict_ok(changes_file => $fname);
+        test_test("fail works");
+      };
+      subtest 'No version, but a date' => sub {
+        my $fname = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
 2024-04-01
 
   - Bugfix.
 EOF
-      test_out("not ok 1 - Changes file passed strict checks");
-      test_fail(+2);
-      test_diag("Line 3: version check: not exactly two values");
-      changes_strict_ok(changes_file => $fname);
-      test_test("fail works");
+        test_out("not ok 1 - Changes file passed strict checks");
+        test_fail(+2);
+        test_diag("Line 3: version check: not exactly two values");
+        changes_strict_ok(changes_file => $fname);
+        test_test("fail works");
+      };
     };
-  };
 
-  subtest 'invalid version' => sub {
-    subtest 'too many dots' => sub {
-      my $fname = write_changes(<<'EOF');
+    subtest 'invalid version' => sub {
+      subtest 'too many dots' => sub {
+        my $fname = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
 0.03.5.9 2024-04-01
 
   - Bugfix.
 EOF
-      test_out("not ok 1 - Changes file passed strict checks");
-      test_fail(+2);
-      test_diag("Line 3: version check: 0.03.5.9: invalid version");
-      changes_strict_ok(changes_file => $fname);
-      test_test("fail works");
-    };
-    subtest "heading 'v'" => sub {
-      my $fname = write_changes(<<'EOF');
+        test_out("not ok 1 - Changes file passed strict checks");
+        test_fail(+2);
+        test_diag("Line 3: version check: 0.03.5.9: invalid version");
+        changes_strict_ok(changes_file => $fname);
+        test_test("fail works");
+      };
+      subtest "heading 'v'" => sub {
+        my $fname = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
 v0.03 2024-04-01
 
   - Bugfix.
 EOF
-      test_out("not ok 1 - Changes file passed strict checks");
-      test_fail(+2);
-      test_diag("Line 3: version check: v0.03: invalid version");
-      changes_strict_ok(changes_file => $fname);
-      test_test("fail works");
+        test_out("not ok 1 - Changes file passed strict checks");
+        test_fail(+2);
+        test_diag("Line 3: version check: v0.03: invalid version");
+        changes_strict_ok(changes_file => $fname);
+        test_test("fail works");
+      };
     };
   };
-};
 
 
-subtest 'Invalid date' => sub {
-  subtest 'wrong format' => sub {
-    subtest 'wrong format: separator' => sub {
-      my $fname = write_changes(<<'EOF');
+  subtest 'Invalid date' => sub {
+    subtest 'wrong format' => sub {
+      subtest 'wrong format: separator' => sub {
+        my $fname = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2024/04/01
 
   - Bugfix.
 EOF
-      test_out("not ok 1 - Changes file passed strict checks");
-      test_fail(+2);
-      test_diag("Line 3: version check: 2024/04/01: invalid date: wrong format");
-      changes_strict_ok(changes_file => $fname);
-      test_test("fail works");
-    };
+        test_out("not ok 1 - Changes file passed strict checks");
+        test_fail(+2);
+        test_diag("Line 3: version check: 2024/04/01: invalid date: wrong format");
+        changes_strict_ok(changes_file => $fname);
+        test_test("fail works");
+      };
 
-    subtest 'wrong format: too many digits' => sub {
-      my $fname = write_changes(<<'EOF');
+      subtest 'wrong format: too many digits' => sub {
+        my $fname = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2024-004-01
 
   - Bugfix.
 EOF
-      test_out("not ok 1 - Changes file passed strict checks");
-      test_fail(+2);
-      test_diag("Line 3: version check: 2024-004-01: invalid date: wrong format");
-      changes_strict_ok(changes_file => $fname);
-      test_test("fail works");
+        test_out("not ok 1 - Changes file passed strict checks");
+        test_fail(+2);
+        test_diag("Line 3: version check: 2024-004-01: invalid date: wrong format");
+        changes_strict_ok(changes_file => $fname);
+        test_test("fail works");
+      };
     };
-  };
 
-  subtest 'Non-existent date' => sub {
-    subtest '35 May' => sub {
-      my $fname = write_changes(<<'EOF');
+    subtest 'Non-existent date' => sub {
+      subtest '35 May' => sub {
+        my $fname = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2024-05-35
 
   - Bugfix.
 EOF
-      test_out("not ok 1 - Changes file passed strict checks");
-      test_fail(+2);
-      test_diag("Line 3: version check: '2024-05-35': invalid date");
-      changes_strict_ok(changes_file => $fname);
-      test_test("fail works");
-    };
+        test_out("not ok 1 - Changes file passed strict checks");
+        test_fail(+2);
+        test_diag("Line 3: version check: '2024-05-35': invalid date");
+        changes_strict_ok(changes_file => $fname);
+        test_test("fail works");
+      };
 
-    subtest '29 February, but not a leap year' => sub {
-      my $fname = write_changes(<<'EOF');
+      subtest '29 February, but not a leap year' => sub {
+        my $fname = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2025-02-29
 
   - Bugfix.
 EOF
-      test_out("not ok 1 - Changes file passed strict checks");
-      test_fail(+2);
-      test_diag("Line 3: version check: '2025-02-29': invalid date");
-      changes_strict_ok(changes_file => $fname);
-      test_test("fail works");
+        test_out("not ok 1 - Changes file passed strict checks");
+        test_fail(+2);
+        test_diag("Line 3: version check: '2025-02-29': invalid date");
+        changes_strict_ok(changes_file => $fname);
+        test_test("fail works");
+      };
     };
-  };
-  subtest 'future date' => sub {
-    my $next_year = (localtime)[5] + 1900 + 1;
-    my $fname = write_changes(<<"EOF");
+    subtest 'future date' => sub {
+      my $next_year = (localtime)[5] + 1900 + 1;
+      my $fname = write_changes(<<"EOF");
 Revision history for distribution Foo-Bar-Baz
 
 0.01 $next_year-04-03
 
   - Initial release.
 EOF
-    test_out("not ok 1 - Changes file passed strict checks");
-    test_fail(+2);
-    test_diag("Line 3: version check: $next_year-04-03: date is in the future.");
-    changes_strict_ok(changes_file => $fname);
-    test_test("fail works");
-  };
-  subtest 'before Perl era' => sub {
-     my $fname = write_changes(<<"EOF");
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 3: version check: $next_year-04-03: date is in the future.");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+    subtest 'before Perl era' => sub {
+      my $fname = write_changes(<<"EOF");
 Revision history for distribution Foo-Bar-Baz
 
 0.01 1965-04-03
 
   - Initial release.
 EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 3: version check: 1965-04-03: before Perl era");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+  };
+
+
+  subtest 'unexpected item line' => sub {
+    my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+  - Initial release.
+
+0.03 2025-04-03
+
+  - Bugfix.
+EOF
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+2);
-    test_diag("Line 3: version check: 1965-04-03: before Perl era");
+    test_diag("Line 3: unexpected item line");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
   };
-};
+
+  subtest "invalid item content" => sub {
+    subtest "empty item" => sub {
+      my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2025-04-03
+
+  - Bugfix.
+  -
+  - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+    ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus.
+  - Donec quam felis.
+EOF
+    test_out("not ok 1 - Changes file passed strict checks");
+    test_fail(+2);
+    test_diag("Line 6: invalid item content");
+    changes_strict_ok(changes_file => $fname);
+    test_test("fail works");
+    };
+
+    subtest "no space after dash" => sub {
+      my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2025-04-03
+
+  - Bugfix.
+  -Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+    ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus.
+  - Donec quam felis.
+EOF
+    test_out("not ok 1 - Changes file passed strict checks");
+    test_fail(+2);
+    test_diag("Line 6: invalid item content");
+    changes_strict_ok(changes_file => $fname);
+    test_test("fail works");
+    };
+
+    subtest "more than 1 space after dash" => sub {
+      my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2025-04-03
+
+  - Bugfix.
+  - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+    ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus.
+  -   Donec quam felis.
+EOF
+    test_out("not ok 1 - Changes file passed strict checks");
+    test_fail(+2);
+    test_diag("Line 9: invalid item content");
+    changes_strict_ok(changes_file => $fname);
+    test_test("fail works");
+    };
+  };
+
+  subtest 'item line: no indentation / wrong indentation' => sub {
+    my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2025-04-03
+
+  - Bugfix. Donec sodales sagittis magna.
+- Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+    ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus.
+    - Donec quam felis.
+  - Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi.
+
+0.01 2024-02-28
+
+ - Initial release.
+EOF
+    test_out("not ok 1 - Changes file passed strict checks");
+    test_fail(+4);
+    test_diag("Line 6: no indentation");
+    test_diag("Line 9: wrong indentation");
+    test_diag("Line 14: wrong indentation");
+    changes_strict_ok(changes_file => $fname);
+    test_test("fail works");
+  };
+  subtest 'unexpected item continuation' => sub {
+    subtest 'immediately after title' => sub {
+      my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+  Donec sodales sagittis magna.
+
+0.03 2025-04-03
+
+  - Bugfix.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 2: unexpected item continuation");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+    subtest 'after empty line after title' => sub {
+      my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+  Donec sodales sagittis magna.
+
+0.03 2025-04-03
+
+  - Bugfix.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 3: unexpected item continuation");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+    subtest 'immediately after version line' => sub {
+      my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2025-04-03
+  Donec sodales sagittis magna.
+
+  - Bugfix.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 4: unexpected item continuation");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+    subtest 'after empty line after version line' => sub {
+      my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2025-04-03
+
+  Donec sodales sagittis magna.
+
+  - Bugfix.
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("Line 5: unexpected item continuation");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+  };
+  subtest 'item continuation: wrong indentation' => sub {
+    my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2025-04-03
+
+  - Bugfix.
+  - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+  ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus.
+  - Donec quam felis.
+  - Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi.
+      Donec sodales sagittis magna.
+
+0.01 2024-02-28
+
+  - Initial release.
+EOF
+    test_out("not ok 1 - Changes file passed strict checks");
+    test_fail(+3);
+    test_diag("Line 7: wrong indentation");
+    test_diag("Line 11: wrong indentation");
+    changes_strict_ok(changes_file => $fname);
+    test_test("fail works");
+  };
+  subtest "unexpected end of file" => sub {
+    subtest "EOF after title line" => sub {
+      my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("unexpected end of file");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+    subtest "EOF after version line" => sub {
+      my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2025-04-03
+
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+2);
+      test_diag("unexpected end of file");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+  };
+};                              # /check changes
 
 # -------------------------------------------------------------------------------------------------
 
