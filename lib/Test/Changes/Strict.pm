@@ -83,10 +83,9 @@ sub changes_strict_ok {
   my @versions;
   _check_changes(\@lines, \@versions) or return;
   _check_version_monotonic(\@versions) or return;
-  _check_trailing_empty_lines(\@lines) or return;
 
   my $ok = $TB->ok($trailing_empty_lines <= 3, $Test_Name) or
-    $TB->diag("More than 3 empty lines at end of file");
+    $TB->diag("more than 3 empty lines at end of file");
   return $ok;
 }
 
@@ -253,8 +252,8 @@ sub _check_version_monotonic {
       my ($v2, $e2) = @{$versions->[$i + 1]}{qw(version epoch)};
       unless ($v1 > $v2) {
         my $vs1 = $versions->[$i]->{version_str};
-        my $vs2 = $versions->[$i + 2]->{version_str};
-        $diag = "$vs1 vs. $vs2: wrong order of versions";
+        my $vs2 = $versions->[$i + 1]->{version_str};
+        $diag = $v1 == $v2 ? "$vs1: duplicate version" : "$vs1 vs. $vs2: wrong order of versions";
         last;
       }
       if ($e1 < $e2) {
@@ -268,17 +267,6 @@ sub _check_version_monotonic {
     $diag = "No versions to check";
   }
   return $diag ? _not_ok($diag) : !0;
-}
-
-
-sub _check_trailing_empty_lines {
-  my ($lines) = @_;
-  local $Test::Builder::Level = $Test::Builder::Level + 1;
-  my $ok = !1;
-  for (my $i = 1; ($i <= 3 && $i < @$lines) && !$ok ; ++$i) {
-    $ok = $lines->[-$i] ne "";
-  }
-  return $ok ? !0 : _not_ok("No more than three blank lines at the end of the file");
 }
 
 # ---------------------------- Helper functions ---------------------------------------

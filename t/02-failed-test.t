@@ -205,12 +205,11 @@ subtest 'Trailing blanks' => sub {
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
   };
-
   subtest '4 trailing empty lines' => sub {
     my $fname = write_changes(join("\n", (@changes, ("") x 4)));
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+2);
-    test_diag("More than 3 empty lines at end of file");
+    test_diag("more than 3 empty lines at end of file");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
   };
@@ -790,6 +789,101 @@ EOF
     };
   };
 };                              # /check changes
+
+subtest 'check version monotonic' => sub {
+  subtest 'duplicate version' => sub {
+    my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+1.00 2025-01-21
+
+  - Bugfix.
+
+0.02 2024-10-12
+
+  - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+    ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus.
+
+0.02 2024-04-03
+
+  - Donec quam felis.
+  - Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi.
+    Donec sodales sagittis magna.
+
+0.01 2024-02-28
+
+  - Initial release.
+EOF
+    test_out("not ok 1 - Changes file passed strict checks");
+    test_fail(+2);
+    test_diag("0.02: duplicate version");
+    changes_strict_ok(changes_file => $fname);
+    test_test("fail works");
+  };
+  subtest 'wrong order of versions' => sub {
+    my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+1.00 2025-01-21
+
+  - Bugfix.
+
+0.02 2024-10-12
+
+  - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+    ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus.
+
+0.03 2024-04-03
+
+  - Donec quam felis.
+  - Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi.
+    Donec sodales sagittis magna.
+
+0.01 2024-02-28
+
+  - Initial release.
+
+EOF
+    test_out("not ok 1 - Changes file passed strict checks");
+    test_fail(+2);
+    test_diag("0.02 vs. 0.03: wrong order of versions");
+    changes_strict_ok(changes_file => $fname);
+    test_test("fail works");
+  };
+  subtest 'version dates chronologically inconsistent' => sub {
+    my $fname = write_changes(<<"EOF");
+Revision history for distribution Foo-Bar-Baz
+
+1.00 2025-01-21
+
+  - Bugfix.
+
+0.03 2024-04-03
+
+  - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+    ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus.
+
+0.02 2024-10-12
+
+  - Donec quam felis.
+  - Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi.
+    Donec sodales sagittis magna.
+
+0.01 2024-02-28
+
+  - Initial release.
+EOF
+    test_out("not ok 1 - Changes file passed strict checks");
+    test_fail(+2);
+    test_diag("date 2024-04-03 < 2024-10-12: chronologically inconsistent");
+    changes_strict_ok(changes_file => $fname);
+    test_test("fail works");
+  };
+};
+
 
 # -------------------------------------------------------------------------------------------------
 
