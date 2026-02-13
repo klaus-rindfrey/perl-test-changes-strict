@@ -89,7 +89,6 @@ subtest 'Wrong title' => sub {
     test_test("fail works");
   };
 
-
   subtest 'Missing title' => sub {
     my $fname = write_changes(<<'EOF');
 0.01 2024-02-28
@@ -762,7 +761,7 @@ EOF
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
   };
-  subtest "unexpected end of file" => sub {
+  subtest "Unexpected end of file" => sub {
     subtest "EOF after title line" => sub {
       my $fname = write_changes(<<"EOF");
 Revision history for distribution Foo-Bar-Baz
@@ -770,7 +769,7 @@ Revision history for distribution Foo-Bar-Baz
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
       test_fail(+2);
-      test_diag("unexpected end of file");
+      test_diag("Unexpected end of file");
       changes_strict_ok(changes_file => $fname);
       test_test("fail works");
     };
@@ -783,7 +782,67 @@ Revision history for distribution Foo-Bar-Baz
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
       test_fail(+2);
-      test_diag("unexpected end of file");
+      test_diag("Unexpected end of file");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+  };
+
+  subtest 'combined' => sub {
+    subtest 'missing dot at end of line / unexpected EOF' => sub {
+      my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2024-03-01
+
+  - Bugfix.
+  - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+  ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus
+  - Donec quam felis.
+  Sed consequat, leo eget bibendum sodales, augue velit cursus nunc
+
+0.02 2024-02-28
+
+  - Some changes
+
+0.01 2024-02-25
+
+ - First release
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+6);
+      test_diag("Line 7: wrong indentation");
+      test_diag("Line 8: missing dot at end of line");
+      test_diag("Line 10: wrong indentation; missing dot at end of line");
+      test_diag("Line 14: missing dot at end of line");
+      test_diag("Line 18: wrong indentation; missing dot at end of line");
+      changes_strict_ok(changes_file => $fname);
+      test_test("fail works");
+    };
+    subtest 'missing dot at end of line / unexpected EOF' => sub {
+      my $fname = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2024-03-01
+
+  - Bugfix.
+  - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
+    ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
+    dis parturient montes, nascetur ridiculus mus
+  - Donec quam felis.
+
+0.02 2024-02-28
+
+     - Some changes
+
+0.02 2024-02-25
+EOF
+      test_out("not ok 1 - Changes file passed strict checks");
+      test_fail(+4);
+      test_diag("Line 8: missing dot at end of line");
+      test_diag("Line 13: wrong indentation; missing dot at end of line");
+      test_diag("Unexpected end of file");
       changes_strict_ok(changes_file => $fname);
       test_test("fail works");
     };

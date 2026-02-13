@@ -235,7 +235,7 @@ sub _check_changes {
                    (map {"Line $_: " . join("; ", @{$errors{$_}})}
                     (sort { $a <=> $b } keys(%errors))));
     }
-    $diag = join('; ', ($diag // ()), "unexpected end of file")
+    $diag = join("\n", ($diag // ()), "Unexpected end of file")
       if ($i > @$lines && !exists($states{$state}->{+st_EOF}));
   }
   return $diag ? _not_ok($diag) : !0;
