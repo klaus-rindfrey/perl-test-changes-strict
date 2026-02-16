@@ -47,8 +47,9 @@ use constant {
 my %states = (
               +st_chlog_head          => [st_empty_after_head],
               +st_empty_after_head    => [st_version],
-              +st_version             => [st_empty_after_version],
-              +st_empty_after_version => [st_item],
+              # +st_version             => [st_empty_after_version],
+              # +st_empty_after_version => [st_item],
+              +st_version             => [st_item],
               +st_item                => [st_item, st_item_cont, st_empty_after_item, st_EOF],
               +st_item_cont           => [st_item, st_item_cont, st_empty_after_item],
               +st_empty_after_item    => [st_version, st_EOF],
@@ -56,7 +57,7 @@ my %states = (
              );
 $_ = { map { $_ => undef } @$_ } for values %states;
 my %empty_line_st = (+st_chlog_head => st_empty_after_head,
-                     +st_version    => st_empty_after_version,
+#                     +st_version    => st_empty_after_version,
                      +st_item       => st_empty_after_item,
                     );
 my %item_line = (+st_item => undef, +st_item_cont => undef);
@@ -305,6 +306,177 @@ sub _not_ok {
 }
 
 
-
-
 1; # End of Test::Changes::Strict
+
+
+
+__END__
+
+
+=pod
+
+=head1 NAME
+
+Test::Changes::Strict - Strict semantic validation for CPAN Changes files
+
+=head1 SYNOPSIS
+
+    use Test::More;
+    use Test::Changes::Strict qw(changes_strict_ok);
+
+    changes_strict_ok('Changes');
+
+    done_testing;
+
+Typically used in C<xt/release/> and guarded by:
+
+    plan skip_all => 'Release tests only'
+        unless $ENV{RELEASE_TESTING};
+
+=head1 DESCRIPTION
+
+C<Test::Changes::Strict> provides strict semantic validation for
+CPAN-style F<Changes> files.
+
+While other modules focus primarily on structural validation,
+this module performs additional consistency checks, including:
+
+=over 4
+
+=item *
+
+Versions are strictly monotonically increasing
+
+=item *
+
+Release dates are valid calendar dates
+
+=item *
+
+Release dates are not in the future
+
+=item *
+
+Release dates are not earlier than the first public Perl release (1987)
+
+=item *
+
+Release dates are monotonically non-decreasing
+(multiple releases on the same day are allowed)
+
+=back
+
+The module is intended for use in release testing and helps
+detect common mistakes such as version regressions, invalid
+dates, and chronological inconsistencies.
+
+=head1 FUNCTIONS
+
+=head2 changes_strict_ok
+
+    changes_strict_ok($file);
+
+Runs strict validation on the given Changes file.
+If no file is provided, C<Changes> is assumed.
+
+The function emits one or more test events using C<Test::Builder>.
+It does not plan tests and does not call C<done_testing>.
+
+Returns true if all checks pass, false otherwise.
+
+=head1 DESIGN PRINCIPLES
+
+This module intentionally separates:
+
+=over 4
+
+=item *
+
+Structural validation of Changes entries
+
+=item *
+
+Chronological consistency
+
+=item *
+
+Semantic validation of release metadata
+
+=back
+
+It does not attempt to compare module versions with the top
+Changes entry. Such checks are better implemented in separate
+release tests to preserve single responsibility.
+
+=head1 LIMITATIONS
+
+The module expects a traditional CPAN-style Changes format:
+
+    1.23 2024-03-01
+      - Some change
+
+Exotic or highly customized Changes formats may not be supported.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item *
+
+L<Test::CPAN::Changes>
+
+Basic structural validation of CPAN Changes files.
+
+=item *
+
+L<Test::CPAN::Changes::ReallyStrict>
+
+Stricter validation rules for Changes files.
+
+=item *
+
+L<Test::Version>
+
+Checks module version consistency.
+
+=item *
+
+L<CPAN::Changes>
+
+Parser and model for Changes files.
+
+=back
+
+=head1 AUTHOR
+
+Your Name E<lt>you@example.comE<gt>
+
+=head1 LICENSE
+
+This library is free software; you may redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+#--------------------------------------------------------------------------------------
+
+=head1 NAME
+
+Test::Changes::Strict - 
+
+
+=head1 SYNOPSIS
+
+
+=head1 DESCRIPTION
+
+
+=head1 COPYRIGHT
+
+    Copyright 2026 Klaus Rindfrey
+    
+
+=head1 SEE ALSO
+
+
+=cut

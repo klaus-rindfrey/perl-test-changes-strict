@@ -18,7 +18,6 @@ subtest 'one version with one simple entry / examples with different titles.' =>
 Revision history for distribution Foo-Bar-Baz
 
 0.01 2024-02-29
-
   - Initial release.
 EOF
 
@@ -32,7 +31,6 @@ EOF
 Revision history for perl distribution Foo-Bar-Baz
 
 0.01   2024-02-28
-
   - Initial release.
 EOF
 
@@ -45,7 +43,6 @@ EOF
 Revision history for module Foo::Bar::Baz
 
 0.01 2024-02-28
-
   - Initial release.
 EOF
 
@@ -58,7 +55,6 @@ EOF
 Revision history for perl module Foo::Bar::Baz
 
 0.01 2024-02-28
-
   - Initial release.
 EOF
 
@@ -73,11 +69,9 @@ subtest 'two simple entries and 3 trailing empty lines' => sub  {
 Revision history for distribution Foo-Bar-Baz
 
 0.02 2024-03-01
-
   - Bugfix.
 
 0.01 2024-02-28
-
   - Initial release.
 
 
@@ -93,18 +87,15 @@ subtest 'multiple entries, some with line continuation, 2 versions same day' => 
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2024-03-01
-
   - Another version, same day.
 
 0.02 2024-03-01
-
   - Bugfix.
   - Added a very fancy feature that alllows this
     and that.
   - Another bugfix.
 
 0.01 2024-02-28
-
   - Initial release. This will hopefully work
     fine.
 

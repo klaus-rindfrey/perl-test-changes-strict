@@ -92,7 +92,6 @@ subtest 'Wrong title' => sub {
   subtest 'Missing title' => sub {
     my $fname = write_changes(<<'EOF');
 0.01 2024-02-28
-
   - Initial release.
 EOF
     test_out("not ok 1 - Changes file passed strict checks");
@@ -110,12 +109,11 @@ subtest 'Non-space white characters' => sub {
 Revision history for distribution Foo-Bar-Baz
 
 0.01 2024-02-28
-
 \t- Initial release.
 EOF
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+2);
-    test_diag("Non-space white character found at line 5");
+    test_diag("Non-space white character found at line 4");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
   };
@@ -125,16 +123,14 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.02 2024-03-15
-
   -\tAnother release.
 
 0.01 2024-02-28
-
 \t\r- Initial release.
 EOF
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+2);
-    test_diag("Non-space white character found at lines 5, 9");
+    test_diag("Non-space white character found at lines 4, 7");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
   };
@@ -142,16 +138,16 @@ EOF
 
 
 subtest 'Trailing blanks' => sub {
-  my @changes = ("Revision history for distribution Foo-Bar-Baz",  # 0 - line  1
-                 "",                                               # 1 - line  2
-                 "0.02 2024-03-01",                                # 2 - line  3
-                 "",                                               # 3 - line  4
-                 "  - Bugfix.",                                    # 4 - line  5
-                 "",                                               # 5 - line  6
-                 "0.01 2024-02-28",                                # 6 - line  7
-                 "",                                               # 7 - line  8
-                 "  - Initial release.",                           # 8 - line  9
-                 ""                                                # 9 - line 10
+  my @changes = ("Revision history for distribution Foo-Bar",  # 0 - line  1
+                 "",                                           # 1 - line  2
+                 "0.02 2024-03-01",                            # 2 - line  3
+                 "  - this.",                                  # 3 - line  4
+                 "  - Bugfix.",                                # 4 - line  5
+                 "",                                           # 5 - line  6
+                 "0.01 2024-02-28",                            # 6 - line  7
+                 "  - that.",                                  # 7 - line  8
+                 "  - Initial release.",                       # 8 - line  9
+                 ""                                            # 9 - line 10
                 );
   subtest 'Trailing blanks in title line' => sub {
     my @test_input = @changes;
@@ -166,22 +162,22 @@ subtest 'Trailing blanks' => sub {
 
   subtest 'Trailing blanks in empty line' => sub {
     my @test_input = @changes;
-    $test_input[3] .= "  ";
+    $test_input[5] .= "  ";
     my $fname = write_changes(join("\n", @test_input));
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+2);
-    test_diag("Trailing white character at line 4");
+    test_diag("Trailing white character at line 6");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
   };
 
   subtest 'Trailing blanks in multiple lines' => sub {
     my @test_input = @changes;
-    $test_input[$_] .= "  " for (1, 2, 4);
+    $test_input[$_] .= "  " for (1, 2, 5);
     my $fname = write_changes(join("\n", @test_input));
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+2);
-    test_diag("Trailing white character at lines 2, 3, 5");
+    test_diag("Trailing white character at lines 2, 3, 6");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
   };
@@ -221,7 +217,6 @@ subtest 'check changes' => sub {
 Revision history for distribution Foo-Bar-Baz
 
 0.02 2024-03-01
-
   - Bugfix.
   - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
     ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
@@ -229,14 +224,13 @@ Revision history for distribution Foo-Bar-Baz
   - Donec quam felis.
 
 0.01 2024-02-28
-
   - Initial release
 
 EOF
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+3);
-    test_diag("Line 8: missing dot at end of line");
-    test_diag("Line 13: missing dot at end of line");
+    test_diag("Line 7: missing dot at end of line");
+    test_diag("Line 11: missing dot at end of line");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
   };
@@ -248,7 +242,6 @@ Revision history for distribution Foo-Bar-Baz
 
 
 0.02 2024-03-01
-
   - Initial release
 
 EOF
@@ -264,13 +257,12 @@ Revision history for distribution Foo-Bar-Baz
 
 0.02 2024-03-01
 
-
   - Initial release
 
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
       test_fail(+2);
-      test_diag("Line 5: unexpected empty line");
+      test_diag("Line 4: unexpected empty line");
       changes_strict_ok(changes_file => $fname);
       test_test("fail works");
     };
@@ -280,7 +272,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.02 2024-03-01
-
   - Bugfix.
 
   - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
@@ -290,7 +281,7 @@ Revision history for distribution Foo-Bar-Baz
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
       test_fail(+2);
-      test_diag("Line 6: unexpected empty line");
+      test_diag("Line 5: unexpected empty line");
       changes_strict_ok(changes_file => $fname);
       test_test("fail works");
     };
@@ -300,7 +291,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.02 2024-03-01
-
   - Bugfix.
   - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
     ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
@@ -311,7 +301,7 @@ Revision history for distribution Foo-Bar-Baz
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
       test_fail(+2);
-      test_diag("Line 9: unexpected empty line");
+      test_diag("Line 8: unexpected empty line");
       changes_strict_ok(changes_file => $fname);
       test_test("fail works");
     };
@@ -321,7 +311,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.02 2024-03-01
-
   - Bugfix.
   - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
     ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
@@ -331,12 +320,11 @@ Revision history for distribution Foo-Bar-Baz
 
 
 0.01 2024-02-28
-
   - Initial release.
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
       test_fail(+2);
-      test_diag("Line 10: unexpected empty line");
+      test_diag("Line 9: unexpected empty line");
       changes_strict_ok(changes_file => $fname);
       test_test("fail works");
     };
@@ -347,7 +335,6 @@ EOF
       my $fname = write_changes(<<'EOF');
 Revision history for distribution Foo-Bar-Baz
 0.02 2024-03-01
-
   - Bugfix.
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
@@ -362,7 +349,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2024-04-01
-
   - Bugfix.
   - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
     ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
@@ -376,32 +362,7 @@ Revision history for distribution Foo-Bar-Baz
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
       test_fail(+2);
-      test_diag("Line 12: unexpected version line");
-      changes_strict_ok(changes_file => $fname);
-      test_test("fail works");
-    };
-
-    subtest 'unexpected version line after empty line after version line' => sub {
-      my $fname = write_changes(<<'EOF');
-Revision history for distribution Foo-Bar-Baz
-
-0.03 2024-04-01
-
-  - Bugfix.
-  - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
-    ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
-    dis parturient montes, nascetur ridiculus mus.
-  - Donec quam felis.
-
-0.02 2024-03-10
-
-0.01 2024-02-28
-
-  - Initial release.
-EOF
-      test_out("not ok 1 - Changes file passed strict checks");
-      test_fail(+2);
-      test_diag("Line 13: unexpected version line");
+      test_diag("Line 11: unexpected version line");
       changes_strict_ok(changes_file => $fname);
       test_test("fail works");
     };
@@ -416,7 +377,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.03
-
   - Bugfix.
 EOF
         test_out("not ok 1 - Changes file passed strict checks");
@@ -430,7 +390,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 2024-04-01
-
   - Bugfix.
 EOF
         test_out("not ok 1 - Changes file passed strict checks");
@@ -447,7 +406,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.03.5.9 2024-04-01
-
   - Bugfix.
 EOF
         test_out("not ok 1 - Changes file passed strict checks");
@@ -461,7 +419,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 v0.03 2024-04-01
-
   - Bugfix.
 EOF
         test_out("not ok 1 - Changes file passed strict checks");
@@ -481,7 +438,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2024/04/01
-
   - Bugfix.
 EOF
         test_out("not ok 1 - Changes file passed strict checks");
@@ -496,7 +452,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2024-004-01
-
   - Bugfix.
 EOF
         test_out("not ok 1 - Changes file passed strict checks");
@@ -513,7 +468,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2024-05-35
-
   - Bugfix.
 EOF
         test_out("not ok 1 - Changes file passed strict checks");
@@ -528,7 +482,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2025-02-29
-
   - Bugfix.
 EOF
         test_out("not ok 1 - Changes file passed strict checks");
@@ -544,7 +497,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.01 $next_year-04-03
-
   - Initial release.
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
@@ -558,7 +510,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.01 1965-04-03
-
   - Initial release.
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
@@ -577,7 +528,6 @@ Revision history for distribution Foo-Bar-Baz
   - Initial release.
 
 0.03 2025-04-03
-
   - Bugfix.
 EOF
     test_out("not ok 1 - Changes file passed strict checks");
@@ -593,7 +543,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2025-04-03
-
   - Bugfix.
   -
   - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
@@ -603,7 +552,7 @@ Revision history for distribution Foo-Bar-Baz
 EOF
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+2);
-    test_diag("Line 6: invalid item content");
+    test_diag("Line 5: invalid item content");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
     };
@@ -613,7 +562,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2025-04-03
-
   - Bugfix.
   -Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
     ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
@@ -622,7 +570,7 @@ Revision history for distribution Foo-Bar-Baz
 EOF
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+2);
-    test_diag("Line 6: invalid item content");
+    test_diag("Line 5: invalid item content");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
     };
@@ -632,7 +580,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2025-04-03
-
   - Bugfix.
   - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
     ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
@@ -641,7 +588,7 @@ Revision history for distribution Foo-Bar-Baz
 EOF
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+2);
-    test_diag("Line 9: invalid item content");
+    test_diag("Line 8: invalid item content");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
     };
@@ -652,7 +599,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2025-04-03
-
   - Bugfix. Donec sodales sagittis magna.
 - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
     ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
@@ -661,14 +607,13 @@ Revision history for distribution Foo-Bar-Baz
   - Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi.
 
 0.01 2024-02-28
-
  - Initial release.
 EOF
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+4);
-    test_diag("Line 6: no indentation");
-    test_diag("Line 9: wrong indentation");
-    test_diag("Line 14: wrong indentation");
+    test_diag("Line 5: no indentation");
+    test_diag("Line 8: wrong indentation");
+    test_diag("Line 12: wrong indentation");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
   };
@@ -679,7 +624,6 @@ Revision history for distribution Foo-Bar-Baz
   Donec sodales sagittis magna.
 
 0.03 2025-04-03
-
   - Bugfix.
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
@@ -695,7 +639,6 @@ Revision history for distribution Foo-Bar-Baz
   Donec sodales sagittis magna.
 
 0.03 2025-04-03
-
   - Bugfix.
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
@@ -710,28 +653,11 @@ Revision history for distribution Foo-Bar-Baz
 
 0.03 2025-04-03
   Donec sodales sagittis magna.
-
   - Bugfix.
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
       test_fail(+2);
       test_diag("Line 4: unexpected item continuation");
-      changes_strict_ok(changes_file => $fname);
-      test_test("fail works");
-    };
-    subtest 'after empty line after version line' => sub {
-      my $fname = write_changes(<<"EOF");
-Revision history for distribution Foo-Bar-Baz
-
-0.03 2025-04-03
-
-  Donec sodales sagittis magna.
-
-  - Bugfix.
-EOF
-      test_out("not ok 1 - Changes file passed strict checks");
-      test_fail(+2);
-      test_diag("Line 5: unexpected item continuation");
       changes_strict_ok(changes_file => $fname);
       test_test("fail works");
     };
@@ -741,7 +667,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2025-04-03
-
   - Bugfix.
   - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
   ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
@@ -751,13 +676,12 @@ Revision history for distribution Foo-Bar-Baz
       Donec sodales sagittis magna.
 
 0.01 2024-02-28
-
   - Initial release.
 EOF
     test_out("not ok 1 - Changes file passed strict checks");
     test_fail(+3);
-    test_diag("Line 7: wrong indentation");
-    test_diag("Line 11: wrong indentation");
+    test_diag("Line 6: wrong indentation");
+    test_diag("Line 10: wrong indentation");
     changes_strict_ok(changes_file => $fname);
     test_test("fail works");
   };
@@ -772,20 +696,7 @@ EOF
       test_diag("Unexpected end of file");
       changes_strict_ok(changes_file => $fname);
       test_test("fail works");
-    };
-    subtest "EOF after version line" => sub {
-      my $fname = write_changes(<<"EOF");
-Revision history for distribution Foo-Bar-Baz
-
-0.03 2025-04-03
-
-EOF
-      test_out("not ok 1 - Changes file passed strict checks");
-      test_fail(+2);
-      test_diag("Unexpected end of file");
-      changes_strict_ok(changes_file => $fname);
-      test_test("fail works");
-    };
+    };;
   };
 
   subtest 'combined' => sub {
@@ -794,7 +705,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2024-03-01
-
   - Bugfix.
   - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
   ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
@@ -803,20 +713,18 @@ Revision history for distribution Foo-Bar-Baz
   Sed consequat, leo eget bibendum sodales, augue velit cursus nunc
 
 0.02 2024-02-28
-
   - Some changes
 
 0.01 2024-02-25
-
  - First release
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
       test_fail(+6);
-      test_diag("Line 7: wrong indentation");
-      test_diag("Line 8: missing dot at end of line");
-      test_diag("Line 10: wrong indentation; missing dot at end of line");
-      test_diag("Line 14: missing dot at end of line");
-      test_diag("Line 18: wrong indentation; missing dot at end of line");
+      test_diag("Line 6: wrong indentation");
+      test_diag("Line 7: missing dot at end of line");
+      test_diag("Line 9: wrong indentation; missing dot at end of line");
+      test_diag("Line 12: missing dot at end of line");
+      test_diag("Line 15: wrong indentation; missing dot at end of line");
       changes_strict_ok(changes_file => $fname);
       test_test("fail works");
     };
@@ -825,7 +733,6 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 0.03 2024-03-01
-
   - Bugfix.
   - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
     ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
@@ -833,16 +740,15 @@ Revision history for distribution Foo-Bar-Baz
   - Donec quam felis.
 
 0.02 2024-02-28
-
      - Some changes
 
 0.02 2024-02-25
 EOF
       test_out("not ok 1 - Changes file passed strict checks");
       test_fail(+4);
-      test_diag("Line 8: missing dot at end of line");
-      test_diag("Line 13: wrong indentation; missing dot at end of line");
-      test_diag("Unexpected end of file");
+      test_diag("Line 7: missing dot at end of line");
+      test_diag("Line 11: wrong indentation; missing dot at end of line");
+      test_diag("Line 14: unexpected empty line");  # EOF
       changes_strict_ok(changes_file => $fname);
       test_test("fail works");
     };
@@ -855,23 +761,19 @@ subtest 'check version monotonic' => sub {
 Revision history for distribution Foo-Bar-Baz
 
 1.00 2025-01-21
-
   - Bugfix.
 
 0.02 2024-10-12
-
   - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
     ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
     dis parturient montes, nascetur ridiculus mus.
 
 0.02 2024-04-03
-
   - Donec quam felis.
   - Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi.
     Donec sodales sagittis magna.
 
 0.01 2024-02-28
-
   - Initial release.
 EOF
     test_out("not ok 1 - Changes file passed strict checks");
@@ -885,23 +787,19 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 1.00 2025-01-21
-
   - Bugfix.
 
 0.02 2024-10-12
-
   - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
     ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
     dis parturient montes, nascetur ridiculus mus.
 
 0.03 2024-04-03
-
   - Donec quam felis.
   - Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi.
     Donec sodales sagittis magna.
 
 0.01 2024-02-28
-
   - Initial release.
 
 EOF
@@ -916,23 +814,19 @@ EOF
 Revision history for distribution Foo-Bar-Baz
 
 1.00 2025-01-21
-
   - Bugfix.
 
 0.03 2024-04-03
-
   - Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo
     ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis
     dis parturient montes, nascetur ridiculus mus.
 
 0.02 2024-10-12
-
   - Donec quam felis.
   - Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi.
     Donec sodales sagittis magna.
 
 0.01 2024-02-28
-
   - Initial release.
 EOF
     test_out("not ok 1 - Changes file passed strict checks");
