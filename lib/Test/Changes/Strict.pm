@@ -3,6 +3,8 @@ package Test::Changes::Strict;
 use 5.010;
 use strict;
 use warnings;
+use parent 'Exporter';
+our @EXPORT = qw(changes_strict_ok);
 
 #use autodie;
 use version;
@@ -13,8 +15,6 @@ use Time::Local;
 
 use Data::Dumper;
 
-use Exporter 'import';
-our @EXPORT_OK = qw(changes_strict_ok);
 
 our $VERSION = '0.01';
 
@@ -44,28 +44,63 @@ use constant {
              };
 
 
-my %states = (
-              +st_chlog_head          => [st_empty_after_head],
-              +st_empty_after_head    => [st_version],
-              # +st_version             => [st_empty_after_version],
-              # +st_empty_after_version => [st_item],
-              +st_version             => [st_item],
-              +st_item                => [st_item, st_item_cont, st_empty_after_item, st_EOF],
-              +st_item_cont           => [st_item, st_item_cont, st_empty_after_item],
-              +st_empty_after_item    => [st_version, st_EOF],
-              +st_EOF                 => [],
-             );
-$_ = { map { $_ => undef } @$_ } for values %states;
-my %empty_line_st = (+st_chlog_head => st_empty_after_head,
-#                     +st_version    => st_empty_after_version,
-                     +st_item       => st_empty_after_item,
-                    );
-my %item_line = (+st_item => undef, +st_item_cont => undef);
-
 my $Test_Name = "Changes file passed strict checks";
 
 #my $Mod_Version = "0.05";   # !!!!!!!!!!!!!
 
+
+my $Empty_Line_After_Version;
+
+### Regexp
+
+sub import {
+  my $class = shift;
+
+  my %opts;                     # Option key/value pairs (starting with '-').
+  my @exports;                  # Requested symbols to export.
+
+  # Separate options (starting with '-') from export symbols.
+  while (@_) {
+    if (@_ >= 2 && $_[0] =~ /^-/) {
+      my ($key, $val) = splice(@_, 0, 2);
+      $key =~ s/^-//;           # Remove leading dash.
+      $opts{$key} = $val;
+    } else {
+      push @exports, shift;
+    }
+  }
+
+  # Process known options.
+  my $no_export = delete $opts{no_export};
+  $Empty_Line_After_Version = delete $opts{-empty_line_after_version};
+
+  # Fail on unknown options.
+  die "Unknown option(s): " . join(", ", keys %opts)
+    if %opts;
+
+  # Export logic.
+
+  # Explicit symbol list provided ==> export exactly those.
+  if (@exports) {
+    __PACKAGE__->export_to_level(1, $class, @exports);
+  }
+
+  # -no_export requested ==> export nothing.
+  elsif ($no_export) {
+    return;
+  }
+
+  # No arguments ==> preserve standard Exporter behaviour.
+  # This keeps the distinction between:
+  #   use MyModule;
+  #   use MyModule ();
+  else {
+    __PACKAGE__->export_to_level(1, $class, @EXPORT);
+  }
+}
+
+
+# ------------------
 
 sub changes_strict_ok {
   my %args = @_;
@@ -164,6 +199,27 @@ sub _check_title {
 sub _check_changes {
   my ($lines, $versions) = @_;
   local $Test::Builder::Level = $Test::Builder::Level + 1;
+my %states = (
+              +st_chlog_head          => [st_empty_after_head],
+              +st_empty_after_head    => [st_version],
+              $Empty_Line_After_Version ? (
+                                           +st_version             => [st_empty_after_version],
+                                           +st_empty_after_version => [st_item],
+                                          )
+                                        : (
+                                           +st_version             => [st_item],
+                                          ),
+              +st_item                => [st_item, st_item_cont, st_empty_after_item, st_EOF],
+              +st_item_cont           => [st_item, st_item_cont, st_empty_after_item],
+              +st_empty_after_item    => [st_version, st_EOF],
+              +st_EOF                 => [],
+             );
+$_ = { map { $_ => undef } @$_ } for values %states;
+  my %empty_line_st = (+st_chlog_head => st_empty_after_head,
+                       +st_item       => st_empty_after_item,
+                       $Empty_Line_After_Version ? (+st_version => st_empty_after_version) : (),
+                      );
+  my %item_line = (+st_item => undef, +st_item_cont => undef);
   my $indent;
   my $state = st_chlog_head;
   my %errors;
