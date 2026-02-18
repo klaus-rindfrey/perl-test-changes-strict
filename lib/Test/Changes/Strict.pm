@@ -84,21 +84,17 @@ sub import {
 
   # Export logic.
 
-  # Explicit symbol list provided ==> export exactly those.
   if (@exports) {
+    # Explicit symbol list provided ==> export exactly those.
     __PACKAGE__->export_to_level(1, $class, @exports);
-  }
-
-  # -no_export requested ==> export nothing.
-  elsif ($no_export) {
+  } elsif ($no_export) {
+    # -no_export requested ==> export nothing.
     return;
-  }
-
-  # No arguments ==> preserve standard Exporter behaviour.
-  # This keeps the distinction between:
-  #   use MyModule;
-  #   use MyModule ();
-  else {
+  } else {
+    # No arguments ==> preserve standard Exporter behaviour.
+    # This keeps the distinction between:
+    #   use MyModule;
+    #   use MyModule ();
     __PACKAGE__->export_to_level(1, $class, @EXPORT);
   }
 }
