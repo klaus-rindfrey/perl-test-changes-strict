@@ -14,6 +14,7 @@ use Test::Builder;
 use Time::Local;
 
 use Data::Dumper;
+use Carp;
 
 
 our $VERSION = '0.01';
@@ -24,7 +25,7 @@ our $VERSION = '0.01';
 #
 my $TB = Test::Builder->new;
 
-my $Ver_re = qr/\b\d+\.\d+\b/;
+my $Ver_Re = qr/\b\d+\.\d+\b/;
 
 use constant {
               map { $_ => $_ } qw(
@@ -66,17 +67,20 @@ sub import {
       $key =~ s/^-//;           # Remove leading dash.
       $opts{$key} = $val;
     } else {
-      push @exports, shift;
+      push(@exports, shift);
     }
   }
 
   # Process known options.
   my $no_export = delete $opts{no_export};
-  $Empty_Line_After_Version = delete $opts{-empty_line_after_version};
+  $Empty_Line_After_Version = delete $opts{empty_line_after_version};
+  if (exists($opts{version_re})) {
+    $Ver_Re = delete $opts{version_re};
+    croak("-version_re: option has an invalid value") if $Ver_Re && ref($Ver_Re) ne "Regexp";
+  }
 
   # Fail on unknown options.
-  die "Unknown option(s): " . join(", ", keys %opts)
-    if %opts;
+  croak("Unknown option(s): " . join(", ", keys %opts)) if %opts;
 
   # Export logic.
 
@@ -104,7 +108,9 @@ sub import {
 
 sub changes_strict_ok {
   my %args = @_;
-  my $changes_file = $args{changes_file} // "Changes";
+  my $changes_file = delete($args{changes_file}) // "Changes";
+  my $mod_version  = delete($args{module_version});
+  croak("Unknown arguments(s): " . join(", ", keys %args)) if %args;
 
   my $test_name = "Changes file passed strict checks";
 
@@ -119,6 +125,11 @@ sub changes_strict_ok {
   my @versions;
   _check_changes(\@lines, \@versions) or return;
   _check_version_monotonic(\@versions) or return;
+  if ($mod_version) {
+    my $top_ver = $versions[0]->{version_str};
+    $TB->ok($mod_version eq $top_ver, $Test_Name) or
+      $TB->diag("The highest version in the changelog is $top_ver, not $mod_version as expected");
+  }
 
   my $ok = $TB->ok($trailing_empty_lines <= 3, $Test_Name) or
     $TB->diag("more than 3 empty lines at end of file");
@@ -332,8 +343,10 @@ sub _check_version_monotonic {
 sub _version_line_check {
   # Line is already trimmed!
   my $line = shift;
-  (my ($version, $date) = split(/\s+/, $line)) == 2 or return("not exactly two values");
-  $version =~ /^$Ver_re$/ or return("$version: invalid version");
+  (my ($ver_str, $date) = split(/\s+/, $line)) == 2 or return("not exactly two values");
+  $Ver_Re && $ver_str =~ /^$Ver_Re$/ or return("$ver_str: invalid version");
+  my $version;
+  eval { $version = version->parse($ver_str); 1; } or return("$ver_str: invalid version");
   $date =~ /^(\d{4})-(\d{2})-(\d{2})$/ or return("$date: invalid date: wrong format");
   my ($y, $m, $d) = ($1, $2, $3);
   my $epoch;
@@ -344,8 +357,8 @@ sub _version_line_check {
 
   $y     >= 1987 or return "$date: before Perl era";
   $epoch <= NOW  or return "$date: date is in the future.";
-  return { version     => version->parse($version),
-           version_str => $version,
+  return { version     => $version,
+           version_str => $ver_str,
            date        => $date,
            epoch       => $epoch};
 }
