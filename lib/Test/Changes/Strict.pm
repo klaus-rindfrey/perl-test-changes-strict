@@ -46,9 +46,8 @@ use constant {
 
 
 my $Test_Name = "Changes file passed strict checks";
-
 my $Empty_Line_After_Version;
-
+my $Chk_Dots = 1;
 
 sub import {
   my $class = shift;
@@ -74,6 +73,7 @@ sub import {
     $Ver_Re = delete $opts{version_re};
     croak("-version_re: option has an invalid value") if ref($Ver_Re) ne "Regexp";
   }
+  $Chk_Dots = delete $opts{check_dots} if exists($opts{check_dots});
 
   # Fail on unknown options.
   croak("Unknown option(s): " . join(", ", keys %opts)) if %opts;
@@ -233,7 +233,7 @@ $_ = { map { $_ => undef } @$_ } for values %states;
     if ($line eq "") {
       my $old_state = $state;
       $err->($i - 1, "missing dot at end of line")
-        if (exists($item_line{$old_state}) && $lines->[$i - 2] !~ /\.$/);
+        if $Chk_Dots && (exists($item_line{$old_state}) && $lines->[$i - 2] !~ /\.$/);
 
 
       if (exists($item_line{$old_state}) || $old_state eq st_empty_after_item) {
@@ -267,7 +267,7 @@ $_ = { map { $_ => undef } @$_ } for values %states;
                                                   last;
                                                 };
       $err->($i - 1, "missing dot at end of line")
-        if (exists($item_line{$state}) && $lines->[$i - 2] !~ /\.$/);
+        if $Chk_Dots && (exists($item_line{$state}) && $lines->[$i - 2] !~ /\.$/);
       $line =~ /^ \S+/ or do { $err->($i, "invalid item content");
                                last;
                              };
