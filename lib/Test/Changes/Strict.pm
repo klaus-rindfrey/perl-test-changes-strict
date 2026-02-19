@@ -119,8 +119,8 @@ sub changes_strict_ok {
   _check_version_monotonic(\@versions) or return;
   if ($mod_version) {
     my $top_ver = $versions[0]->{version_str};
-    $TB->ok($mod_version eq $top_ver, $Test_Name) or
-      $TB->diag("The highest version in the changelog is $top_ver, not $mod_version as expected");
+    $mod_version eq $top_ver or
+      return _not_ok("Highest version in changelog is $top_ver, not $mod_version as expected");
   }
 
   my $ok = $TB->ok($trailing_empty_lines <= 3, $Test_Name) or

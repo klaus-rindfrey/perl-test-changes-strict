@@ -105,6 +105,25 @@ EOF
   test_test("valid Changes file passes");
 };
 
+
+subtest 'Argument module_version' => sub  {
+  my $valid_changes = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2024-03-01
+  - Another version, same day.
+
+0.02 2024-03-01
+  - Bugfix.
+  - Added a very fancy feature that alllows this
+    and that.
+EOF
+  set_test_out_all_ok();
+  changes_strict_ok(changes_file => $valid_changes, module_version => '0.03');
+  test_test("valid Changes file passes");
+};
+
+
 # -------------------------------------------------------------------------------------------------
 
 done_testing;

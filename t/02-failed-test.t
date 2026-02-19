@@ -838,6 +838,26 @@ EOF
 };
 
 
+subtest 'Argument module_version' => sub  {
+  my $valid_changes = write_changes(<<'EOF');
+Revision history for distribution Foo-Bar-Baz
+
+0.03 2024-03-01
+  - Another version, same day.
+
+0.02 2024-03-01
+  - Bugfix.
+  - Added a very fancy feature that alllows this
+    and that.
+EOF
+  test_out("not ok 1 - Changes file passed strict checks");
+  test_fail(+2);
+  test_diag("Highest version in changelog is 0.03, not 0.02 as expected");
+  changes_strict_ok(changes_file => $valid_changes, module_version => '0.02');
+  test_test("valid Changes file passes");
+};
+
+
 # -------------------------------------------------------------------------------------------------
 
 done_testing;
