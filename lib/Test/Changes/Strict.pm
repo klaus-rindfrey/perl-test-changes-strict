@@ -25,7 +25,7 @@ our $VERSION = '0.01';
 #
 my $TB = Test::Builder->new;
 
-my $Ver_Re = qr/\b\d+\.\d+\b/;
+my $Ver_Re = qr/\d+\.\d+/;
 
 use constant {
               map { $_ => $_ } qw(
@@ -47,17 +47,13 @@ use constant {
 
 my $Test_Name = "Changes file passed strict checks";
 
-#my $Mod_Version = "0.05";   # !!!!!!!!!!!!!
-
-
 my $Empty_Line_After_Version;
 
-### Regexp
 
 sub import {
   my $class = shift;
 
-  my %opts;                     # Option key/value pairs (starting with '-').
+  my %opts;                     # Option key/value pairs.
   my @exports;                  # Requested symbols to export.
 
   # Separate options (starting with '-') from export symbols.
@@ -76,7 +72,7 @@ sub import {
   $Empty_Line_After_Version = delete $opts{empty_line_after_version};
   if (exists($opts{version_re})) {
     $Ver_Re = delete $opts{version_re};
-    croak("-version_re: option has an invalid value") if $Ver_Re && ref($Ver_Re) ne "Regexp";
+    croak("-version_re: option has an invalid value") if ref($Ver_Re) ne "Regexp";
   }
 
   # Fail on unknown options.
@@ -340,14 +336,14 @@ sub _version_line_check {
   # Line is already trimmed!
   my $line = shift;
   (my ($ver_str, $date) = split(/\s+/, $line)) == 2 or return("not exactly two values");
-  $Ver_Re && $ver_str =~ /^$Ver_Re$/ or return("$ver_str: invalid version");
+  $ver_str =~ /^$Ver_Re$/ or return "$ver_str: invalid version";
   my $version;
   eval { $version = version->parse($ver_str); 1; } or return("$ver_str: invalid version");
   $date =~ /^(\d{4})-(\d{2})-(\d{2})$/ or return("$date: invalid date: wrong format");
   my ($y, $m, $d) = ($1, $2, $3);
   my $epoch;
   eval {
-    $epoch = Time::Local::timegm(0, 0, 0, $d, $m-1, $y);
+    $epoch = Time::Local::timegm(0, 0, 0, $d, $m - 1, $y);
     1;
   } or return "'$date': invalid date";
 

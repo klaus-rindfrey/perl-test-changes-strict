@@ -38,15 +38,7 @@ sub set_test_out_ok {
 }
 
 sub set_test_out_all_ok {
-  set_test_out_ok(
-                  # "Newline at end of file",
-                  # "No trailing or non-space white characters",
-                  # "Header line ok",
-                  # "Check changes log",
-                  # "Versions/dates are monotonically increasing",
-                  # "No more than three blank lines at the end of the file",
-                  "Changes file passed strict checks",
-                 );
+  set_test_out_ok("Changes file passed strict checks");
 }
 
 
